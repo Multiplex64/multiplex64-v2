@@ -47,14 +47,20 @@ class RequestLoggingMiddleware:
         json_logger.info(
             json.dumps(
                 {
-                    "request-time-utc": start_time,
-                    "response-time-ms": duration_ms,
-                    "status_code": response.status_code,
-                    "method": request.method,
-                    "path": request.get_full_path(),
-                    "remote_addr": client_ip,
-                    # "user_agent": request,
-                    # "referrer": request,
+                    "request": {
+                        "time": start_time,
+                        "method": request.method,
+                        "path": request.get_full_path(),
+                        "address": client_ip,
+                        "size": len(request.body),
+                        # "user_agent": request,
+                        # "referrer": request,
+                    },
+                    "response": {
+                        "duration": f"{duration_ms:.2f}",
+                        "code": response.status_code,
+                        "size": len(response.content),
+                    },
                 }
             )
         )
