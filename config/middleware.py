@@ -33,6 +33,11 @@ class RequestLoggingMiddleware:
             if hasattr(request, "user") and request.user.is_authenticated
             else "Anonymous"
         )
+        if response.streaming:
+            # Handle streaming responses (e.g., use streaming_content or skip length check)
+            content_length = -1 
+        else:
+            content_length = len(response.content)
 
         # 6. Log the structured details
         plaintext_logger.info(
@@ -53,13 +58,13 @@ class RequestLoggingMiddleware:
                         "path": request.get_full_path(),
                         "address": client_ip,
                         "size": len(request.body),
-                        # "user_agent": request,
-                        # "referrer": request,
+                        "user_agent": request.headers.get("User-Agent"),
+                        "referrer": request.headers.get("Referer"),
                     },
                     "response": {
                         "duration": f"{duration_ms:.2f}",
                         "code": response.status_code,
-                        "size": len(response.content),
+                        "size": content_length,
                     },
                 }
             )
