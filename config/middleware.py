@@ -1,5 +1,6 @@
 import logging
 import time
+import json
 
 logger = logging.getLogger("request_logger")
 
@@ -33,11 +34,12 @@ class RequestLoggingMiddleware:
 
         # 6. Log the structured details
         logger.info(
-            f"[{request.method}] {request.get_full_path()} | "
-            f"Status: {response.status_code} | "
-            f"Duration: {duration_ms:.2f}ms | "
-            f"User: {user} | "
-            f"IP: {client_ip}"
+            f"{client_ip.ljust(15)} "
+            f"{response.status_code} "
+            f"{request.method.ljust(8)} "
+            f"{request.get_full_path()} "
+            f"{duration_ms:.2f}ms "
+            f"{user}"
         )
 
         return response
