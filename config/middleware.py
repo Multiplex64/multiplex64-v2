@@ -2,7 +2,9 @@ import logging
 import time
 import json
 
-logger = logging.getLogger("request_logger")
+plaintext_logger = logging.getLogger("plaintext_request_logger")
+json_logger = logging.getLogger("json_request_logger")
+
 
 class RequestLoggingMiddleware:
     def __init__(self, get_response):
@@ -33,13 +35,28 @@ class RequestLoggingMiddleware:
         )
 
         # 6. Log the structured details
-        logger.info(
+        plaintext_logger.info(
             f"{client_ip.ljust(15)} "
             f"{response.status_code} "
             f"{request.method.ljust(8)} "
             f"{request.get_full_path()} "
             f"{duration_ms:.2f}ms "
             f"{user}"
+        )
+
+        json_logger.info(
+            json.dumps(
+                {
+                    "request-time-utc": start_time,
+                    "response-time-ms": duration_ms,
+                    "status_code": response.status_code,
+                    "method": request.method,
+                    "path": request.get_full_path(),
+                    "remote_addr": client_ip,
+                    # "user_agent": request,
+                    # "referrer": request,
+                }
+            )
         )
 
         return response

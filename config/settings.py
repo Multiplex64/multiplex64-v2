@@ -175,11 +175,17 @@ LOGGING = {
             "filename": BASE_DIR / "_data" / "logs" / "errors.log",
             "formatter": "verbose",
         },
-        "requests_file": {
+        "plaintext_requests_file": {
             "level": "INFO",
             "class": "logging.FileHandler",
             "filename": BASE_DIR / "_data" / "logs" / "requests.log",
             "formatter": "timestamp",
+        },
+        "json_requests_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "_data" / "logs" / "requests.jsonl",
+            "formatter": "plain",
         },
     },
     "loggers": {
@@ -188,8 +194,13 @@ LOGGING = {
             "level": "ERROR",
             "propagate": True,
         },
-        "request_logger": {
-            "handlers": ["requests_file"],
+        "plaintext_request_logger": {
+            "handlers": ["plaintext_requests_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "json_request_logger": {
+            "handlers": ["json_requests_file"],
             "level": "INFO",
             "propagate": False,
         },
