@@ -156,7 +156,15 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "[{asctime}] {levelname} {name} {module}:{lineno} - {message}",
+            "format": "{asctime} {levelname} {name} {module}:{lineno} - {message}",
+            "style": "{",
+        },
+        "timestamp": {
+            "format": "{asctime} - {message}",
+            "style": "{",
+        },
+        "plain": {
+            "format": "{message}",
             "style": "{",
         },
     },
@@ -171,7 +179,7 @@ LOGGING = {
             "level": "INFO",
             "class": "logging.FileHandler",
             "filename": BASE_DIR / "_data" / "logs" / "requests.log",
-            "formatter": "verbose",
+            "formatter": "timestamp",
         },
     },
     "loggers": {
