@@ -18,7 +18,7 @@ Working Directory:
 
 Virtualenv (Doesn't need to exist yet):
 
-`venv` (Should expland to `/home/<user>/-virtualenvs/venv`)
+`.venv` (Should expland to `/home/<user>/-virtualenvs/.venv`)
 
 Static files:
 

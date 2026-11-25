@@ -7,7 +7,7 @@ export VIRTUALENVWRAPPER_PYTHON=$(which python3)
 source "$(which virtualenvwrapper.sh)"
 # Clone repo
 echo "Creating venv"
-mkvirtualenv --python=/usr/bin/python3.13 venv
+mkvirtualenv --python=/usr/bin/python3.13 .venv
 echo "Cloning Repo"
 git clone --depth 1 --branch prod --single-branch https://github.com/Multiplex64/Multiplex64_v2 Multiplex64
 read -p "Create .env file, set working directory, venv setting, and static directory. Then, press ENTER."
