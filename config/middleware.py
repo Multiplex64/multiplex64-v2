@@ -43,7 +43,7 @@ class RequestLoggingMiddleware:
         plaintext_logger.info(
             f"{client_ip.ljust(15)} "
             f"{response.status_code} "
-            f"{request.method.ljust(8)} "
+            f"{request.method[:3]} "
             f"{request.get_full_path()} "
             f"{duration_ms:.2f}ms "
             f"{user}"
