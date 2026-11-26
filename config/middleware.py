@@ -1,12 +1,31 @@
 import logging
 import time
 import json
+import uuid
 
 plaintext_logger = logging.getLogger("plaintext_request_logger")
 json_logger = logging.getLogger("json_request_logger")
 
 
+class RequestUUIDMiddleware:
+    """Middleware to generate a UUID for each request"""
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+
+        request.id = request_id
+
+        response = self.get_response(request)
+
+        # Return the UUID in the response headers
+        response["X-Request-ID"] = request_id
+        return response
+
+
 class RequestLoggingMiddleware:
+    """Log all HTTP requests to both human readable .log file and machine readable .jsonl file"""
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -54,6 +73,7 @@ class RequestLoggingMiddleware:
             json.dumps(
                 {
                     "time": utc_time,
+                    "id" : request.id,
                     "request": {
                         "method": request.method,
                         "path": request.get_full_path(),
