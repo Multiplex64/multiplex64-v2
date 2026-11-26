@@ -13,6 +13,7 @@ class RequestLoggingMiddleware:
     def __call__(self, request):
         # 1. Start timer before processing the request
         start_time = time.monotonic()
+        utc_time = time.time()
 
         # 2. Extract client IP (handles reverse proxies like Nginx)
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -35,7 +36,7 @@ class RequestLoggingMiddleware:
         )
         if response.streaming:
             # Handle streaming responses (e.g., use streaming_content or skip length check)
-            content_length = -1 
+            content_length = -1
         else:
             content_length = len(response.content)
 
@@ -44,27 +45,29 @@ class RequestLoggingMiddleware:
             f"{client_ip.ljust(15)} "
             f"{response.status_code} "
             f"{request.method[:3]} "
-            f"{request.get_full_path()} "
-            f"{duration_ms:.2f}ms "
-            f"{user}"
+            f"{request.get_full_path()} - "
+            f"{user} "
+            f"{duration_ms:.0f}ms"
         )
 
         json_logger.info(
             json.dumps(
                 {
+                    "time": utc_time,
                     "request": {
-                        "time": start_time,
                         "method": request.method,
                         "path": request.get_full_path(),
-                        "address": client_ip,
+                        "ip": client_ip,
                         "size": len(request.body),
+                        "user_id": request.user.id,
+                        "referer": request.headers.get("Referer"),
                         "user_agent": request.headers.get("User-Agent"),
-                        "referrer": request.headers.get("Referer"),
                     },
                     "response": {
-                        "duration": f"{duration_ms:.2f}",
                         "code": response.status_code,
                         "size": content_length,
+                        "duration_ms": round(duration_ms, 2),
+                        "view_name": getattr(request.resolver_match, "view_name", None),
                     },
                 }
             )
