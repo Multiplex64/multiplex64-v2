@@ -2,6 +2,7 @@ import logging
 import time
 import json
 import uuid
+import datetime
 
 plaintext_logger = logging.getLogger("plaintext_request_logger")
 json_logger = logging.getLogger("json_request_logger")
@@ -9,11 +10,12 @@ json_logger = logging.getLogger("json_request_logger")
 
 class RequestUUIDMiddleware:
     """Middleware to generate a UUID for each request"""
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid7())
 
         request.id = request_id
 
@@ -26,6 +28,7 @@ class RequestUUIDMiddleware:
 
 class RequestLoggingMiddleware:
     """Log all HTTP requests to both human readable .log file and machine readable .jsonl file"""
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -33,6 +36,7 @@ class RequestLoggingMiddleware:
         # 1. Start timer before processing the request
         start_time = time.monotonic()
         utc_time = time.time()
+        date_time = datetime.datetime.now()
 
         # 2. Extract client IP (handles reverse proxies like Nginx)
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -72,14 +76,17 @@ class RequestLoggingMiddleware:
         json_logger.info(
             json.dumps(
                 {
-                    "time": utc_time,
-                    "id" : request.id,
+                    "time": date_time.isoformat() + "Z",
+                    "id": request.id,
                     "request": {
                         "method": request.method,
+                        # "host": request.get_host(), # Not used, serves one domain
                         "path": request.get_full_path(),
                         "ip": client_ip,
                         "size": len(request.body),
-                        "user_id": request.user.id,
+                        "user_id": (
+                            request.user.id if hasattr(request, "user") else None
+                        ),
                         "referer": request.headers.get("Referer"),
                         "user_agent": request.headers.get("User-Agent"),
                     },
