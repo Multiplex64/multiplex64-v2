@@ -35,7 +35,6 @@ class RequestLoggingMiddleware:
     def __call__(self, request):
         # 1. Start timer before processing the request
         start_time = time.monotonic()
-        utc_time = time.time()
         date_time = datetime.datetime.now()
 
         # 2. Extract client IP (handles reverse proxies like Nginx)
@@ -59,9 +58,12 @@ class RequestLoggingMiddleware:
         )
         if response.streaming:
             # Handle streaming responses (e.g., use streaming_content or skip length check)
-            content_length = -1
+            response_size = -1
         else:
-            content_length = len(response.content)
+            response_size = len(response.content)
+
+        raw_content_length = request.META.get("CONTENT_LENGTH")
+        request_size = int(raw_content_length) if raw_content_length and raw_content_length.isdigit() else 0
 
         # 6. Log the structured details
         plaintext_logger.info(
@@ -76,25 +78,23 @@ class RequestLoggingMiddleware:
         json_logger.info(
             json.dumps(
                 {
-                    "time": date_time.isoformat() + "Z",
+                    "time": date_time.astimezone(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
                     "id": request.id,
+                    "view": getattr(request.resolver_match, "view_name", None),
                     "request": {
                         "method": request.method,
                         # "host": request.get_host(), # Not used, serves one domain
                         "path": request.get_full_path(),
                         "ip": client_ip,
-                        "size": len(request.body),
-                        "user_id": (
-                            request.user.id if hasattr(request, "user") else None
-                        ),
+                        "size": request_size,
+                        "user_id": request.user.id if request.user.is_authenticated else None,
                         "referer": request.headers.get("Referer"),
                         "user_agent": request.headers.get("User-Agent"),
                     },
                     "response": {
                         "code": response.status_code,
-                        "size": content_length,
+                        "size": response_size,
                         "duration_ms": round(duration_ms, 2),
-                        "view_name": getattr(request.resolver_match, "view_name", None),
                     },
                 }
             )
