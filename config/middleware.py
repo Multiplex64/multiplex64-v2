@@ -33,39 +33,50 @@ class RequestLoggingMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # 1. Start timer before processing the request
+        # Start timer before processing the request
         start_time = time.monotonic()
-        date_time = datetime.datetime.now()
+        utc_time = (
+            datetime.datetime.now()
+            .astimezone(datetime.timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
 
-        # 2. Extract client IP (handles reverse proxies like Nginx)
+        # Extract client IP (handles reverse proxies like Nginx)
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
             client_ip = x_forwarded_for.split(",")[0].strip()
         else:
             client_ip = request.META.get("REMOTE_ADDR")
 
-        # 3. Pass request down to the view and capture the response
+        # Get request size
+        raw_content_length = request.META.get("CONTENT_LENGTH")
+        request_size = (
+            int(raw_content_length)
+            if raw_content_length and raw_content_length.isdigit()
+            else 0
+        )
+
+        # Pass request down to the view and capture the response
         response = self.get_response(request)
 
-        # 4. Calculate total processing duration in milliseconds
+        # Calculate total processing duration in milliseconds
         duration_ms = (time.monotonic() - start_time) * 1000
 
-        # 5. Identify authenticated user if available
+        # Identify authenticated user if available
         user = (
             request.user.username
             if hasattr(request, "user") and request.user.is_authenticated
             else "Anonymous"
         )
+
+        # Get response size
         if response.streaming:
-            # Handle streaming responses (e.g., use streaming_content or skip length check)
             response_size = -1
         else:
             response_size = len(response.content)
 
-        raw_content_length = request.META.get("CONTENT_LENGTH")
-        request_size = int(raw_content_length) if raw_content_length and raw_content_length.isdigit() else 0
-
-        # 6. Log the structured details
+        # Log the details
         plaintext_logger.info(
             f"{client_ip.ljust(15)} "
             f"{response.status_code} "
@@ -78,7 +89,7 @@ class RequestLoggingMiddleware:
         json_logger.info(
             json.dumps(
                 {
-                    "time": date_time.astimezone(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "time": utc_time,
                     "id": request.id,
                     "view": getattr(request.resolver_match, "view_name", None),
                     "request": {
@@ -87,7 +98,9 @@ class RequestLoggingMiddleware:
                         "path": request.get_full_path(),
                         "ip": client_ip,
                         "size": request_size,
-                        "user_id": request.user.id if request.user.is_authenticated else None,
+                        "user_id": (
+                            request.user.id if request.user.is_authenticated else None
+                        ),
                         "referer": request.headers.get("Referer"),
                         "user_agent": request.headers.get("User-Agent"),
                     },

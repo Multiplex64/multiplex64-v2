@@ -151,16 +151,19 @@ DATABASES = {
     }
 }
 
+
 # Logging
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
+            "()": "config.utils.ISO8601Formatter",
             "format": "{asctime} {levelname} {name} {module}:{lineno} - {message}",
             "style": "{",
         },
         "timestamp": {
+            "()": "config.utils.ISO8601Formatter",
             "format": "{asctime} - {message}",
             "style": "{",
         },
