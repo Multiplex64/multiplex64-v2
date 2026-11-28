@@ -5,9 +5,10 @@ import json
 import logging
 import time
 import urllib.parse
-import uuid
 
 from django.conf import settings
+
+from .utils import uuid7
 
 plaintext_logger = logging.getLogger("plaintext_request_logger")
 json_logger = logging.getLogger("json_request_logger")
@@ -34,7 +35,7 @@ class RequestUUIDMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        request_id = str(uuid.uuid7())
+        request_id = str(uuid7())
 
         request.id = request_id
 
