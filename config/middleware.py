@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import json
 import logging
 import time
@@ -60,11 +61,28 @@ class RequestLoggingMiddleware:
         # Pass request down to the view and capture the response
         response = self.get_response(request)
 
+        # Get the view name
+        resolver = getattr(request, "resolver_match", None)
+        view_name = getattr(resolver, "view_name", None) if resolver else None
+
         # Identify authenticated user if available
-        user = (
+        user_name = (
             request.user.username
             if hasattr(request, "user") and request.user.is_authenticated
             else "Anonymous"
+        )
+
+        # Get user ID
+        user = getattr(request, "user", None)
+        user_id = user.id if user and user.is_authenticated else None
+
+        # Get session
+        session = getattr(request, "session", None)
+        session_key = session.session_key if session else None
+
+        # Hash session id
+        hashed_session_id = (
+            hashlib.sha256(session_key.encode()).hexdigest() if session_key else None
         )
 
         # Get response size
@@ -82,33 +100,32 @@ class RequestLoggingMiddleware:
             f"{response.status_code} "
             f"{request.method[:3]} "
             f"{request.get_full_path()} - "
-            f"{user} "
+            f"{user_name} "
             f"{duration_us:.0f}us"
         )
 
+        # JSON log of all HTTP requests
         json_logger.info(
             json.dumps(
                 {
-                    "time": utc_time,
+                    "timestamp": utc_time,
                     "trace_id": request.id,
-                    "view": getattr(request.resolver_match, "view_name", None),
+                    "view": view_name,
                     # "level": "info", # Not used, all logs in this file are info level
                     # "env": "prod", # Not used, each env already has separate logs
                     "request": {
                         "method": request.method,
                         # "host": request.get_host(), # Not used, serves one domain
                         "path": request.get_full_path(),
-                        "ip": client_ip,
-                        "size": request_size,
-                        "user_id": (
-                            request.user.id if request.user.is_authenticated else None
-                        ),
-                        "session_id": (request.session.session_key),
+                        "ip": client_ip, # Uses X-Forwarded-For
+                        "size": request_size, # Defaults to -1 when it is a streaming response
+                        "user_id": user_id,
+                        "session_id": hashed_session_id,
                         "referer": request.headers.get("Referer"),
                         "user_agent": request.headers.get("User-Agent"),
                     },
                     "response": {
-                        "code": response.status_code,
+                        "status_code": response.status_code,
                         "size": response_size,
                         "duration_us": round(duration_us),
                     },
