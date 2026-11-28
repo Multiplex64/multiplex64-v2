@@ -109,7 +109,7 @@ class RequestLoggingMiddleware:
             json.dumps(
                 {
                     "timestamp": utc_time,
-                    "trace_id": request.id,
+                    "request_id": request.id,
                     "view": view_name,
                     # "level": "info", # Not used, all logs in this file are info level
                     # "env": "prod", # Not used, each env already has separate logs
@@ -117,7 +117,7 @@ class RequestLoggingMiddleware:
                         "method": request.method,
                         # "host": request.get_host(), # Not used, serves one domain
                         "path": request.get_full_path(),
-                        "ip": client_ip, # Uses X-Forwarded-For
+                        "ip": client_ip,  # Uses X-Forwarded-For
                         "size": request_size,
                         "user_id": user_id,
                         "session_id": hashed_session_id,
@@ -126,10 +126,11 @@ class RequestLoggingMiddleware:
                     },
                     "response": {
                         "status_code": response.status_code,
-                        "size": response_size, # Defaults to -1 when it is a streaming response
+                        "size": response_size,  # Defaults to -1 when it is a streaming response
                         "duration_us": duration_us,
                     },
-                }
+                },
+                separators=(",", ":"),
             )
         )
 
