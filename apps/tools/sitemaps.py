@@ -1,7 +1,8 @@
 import os
+
 from django.conf import settings
 from django.contrib.sitemaps import Sitemap
-from django.urls import reverse, NoReverseMatch
+from django.urls import NoReverseMatch, reverse
 
 
 class ToolsIndexSitemap(Sitemap):

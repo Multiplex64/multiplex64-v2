@@ -37,7 +37,7 @@ class RequestLoggingMiddleware:
         start_time = time.monotonic()
         utc_time = (
             datetime.datetime.now()
-            .astimezone(datetime.timezone.utc)
+            .astimezone(datetime.UTC)
             .isoformat()
             .replace("+00:00", "Z")
         )
@@ -90,7 +90,7 @@ class RequestLoggingMiddleware:
             json.dumps(
                 {
                     "time": utc_time,
-                    "id": request.id,
+                    "trace_id": request.id,
                     "view": getattr(request.resolver_match, "view_name", None),
                     "request": {
                         "method": request.method,
@@ -100,6 +100,9 @@ class RequestLoggingMiddleware:
                         "size": request_size,
                         "user_id": (
                             request.user.id if request.user.is_authenticated else None
+                        ),
+                        "session_id": (
+                            request.session.session_key
                         ),
                         "referer": request.headers.get("Referer"),
                         "user_agent": request.headers.get("User-Agent"),

@@ -1,6 +1,6 @@
+from django.http import Http404
 from django.shortcuts import render
 from django.template import TemplateDoesNotExist
-from django.http import Http404
 
 
 def index(request):
