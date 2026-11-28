@@ -3,6 +3,9 @@ import time
 import json
 import uuid
 import datetime
+import ipaddress
+
+from django.conf import settings
 
 plaintext_logger = logging.getLogger("plaintext_request_logger")
 json_logger = logging.getLogger("json_request_logger")
@@ -15,7 +18,7 @@ class RequestUUIDMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid7())
+        request_id = str(uuid.uuid7())
 
         request.id = request_id
 
@@ -43,11 +46,17 @@ class RequestLoggingMiddleware:
         )
 
         # Extract client IP (handles reverse proxies like Nginx)
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            client_ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            client_ip = request.META.get("REMOTE_ADDR")
+        client_ip = request.META.get("REMOTE_ADDR")
+        peer_ip = client_ip
+        if peer_ip and peer_ip in settings.TRUSTED_PROXY_IPS:
+            x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+            if x_forwarded_for:
+                forwarded_ip = x_forwarded_for.split(",")[0].strip()
+                try:
+                    ipaddress.ip_address(forwarded_ip)
+                    client_ip = forwarded_ip
+                except ValueError:
+                    pass
 
         # Get request size
         raw_content_length = request.META.get("CONTENT_LENGTH")
