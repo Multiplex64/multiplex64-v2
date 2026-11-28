@@ -46,17 +46,11 @@ class RequestLoggingMiddleware:
         )
 
         # Extract client IP (handles reverse proxies like Nginx)
-        client_ip = request.META.get("REMOTE_ADDR")
-        peer_ip = client_ip
-        if peer_ip and peer_ip in settings.TRUSTED_PROXY_IPS:
-            x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-            if x_forwarded_for:
-                forwarded_ip = x_forwarded_for.split(",")[0].strip()
-                try:
-                    ipaddress.ip_address(forwarded_ip)
-                    client_ip = forwarded_ip
-                except ValueError:
-                    pass
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            client_ip = x_forwarded_for.split(",")[0].strip()
+        else:
+            client_ip = request.META.get("REMOTE_ADDR")
 
         # Get request size
         raw_content_length = request.META.get("CONTENT_LENGTH")
