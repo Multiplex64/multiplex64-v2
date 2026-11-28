@@ -53,6 +53,7 @@ select,
 pre {
   font-size: 1rem;
   font-family: var(--font-body);
+
   &:disabled {
     background-color: #ddd;
     color: #222;
@@ -193,6 +194,10 @@ hr._short {
   width: 256px;
 }
 
+._maxwidth {
+  width: 100%;
+}
+
 /*================================================================
 Layout styles
 ================================================================ */
@@ -247,6 +252,7 @@ main {
   box-sizing: border-box;
   line-height: calc(2rem - 2px);
   text-align: center;
+
   &:focus-visible {
     outline-offset: -2px;
   }
@@ -338,7 +344,7 @@ main {
     user-select: none;
   }
 
-  #_topbar > button:not(#_navbutton) {
+  #_topbar>button:not(#_navbutton) {
     display: none;
   }
 
