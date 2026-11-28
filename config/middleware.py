@@ -92,7 +92,7 @@ class RequestLoggingMiddleware:
             response_size = len(response.content)
 
         # Calculate total processing duration in milliseconds
-        duration_us = (time.monotonic() - start_time) * 1000000
+        duration_us = round((time.monotonic() - start_time) * 1000000)
 
         # Log the details
         plaintext_logger.info(
@@ -101,7 +101,7 @@ class RequestLoggingMiddleware:
             f"{request.method[:3]} "
             f"{request.get_full_path()} - "
             f"{user_name} "
-            f"{duration_us:.0f}us"
+            f"{duration_us}us"
         )
 
         # JSON log of all HTTP requests
@@ -118,7 +118,7 @@ class RequestLoggingMiddleware:
                         # "host": request.get_host(), # Not used, serves one domain
                         "path": request.get_full_path(),
                         "ip": client_ip, # Uses X-Forwarded-For
-                        "size": request_size, # Defaults to -1 when it is a streaming response
+                        "size": request_size,
                         "user_id": user_id,
                         "session_id": hashed_session_id,
                         "referer": request.headers.get("Referer"),
@@ -126,8 +126,8 @@ class RequestLoggingMiddleware:
                     },
                     "response": {
                         "status_code": response.status_code,
-                        "size": response_size,
-                        "duration_us": round(duration_us),
+                        "size": response_size, # Defaults to -1 when it is a streaming response
+                        "duration_us": duration_us,
                     },
                 }
             )
