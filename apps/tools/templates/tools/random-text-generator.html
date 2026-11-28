@@ -34,12 +34,29 @@
     const output = document.getElementById("output")
     function generateText(manual_action) {
       if (manual_action || checkAuto.checked) {
-        const digits = inputChars.value;
-        const array = new Uint8Array(inputLength.value);
-        window.crypto.getRandomValues(array);
+        const digits = Array.from(inputChars.value);
+        const length = Number(inputLength.value);
+        if (digits.length === 0) {
+          output.textContent = "Error: Character set cannot be empty";
+          return;
+        }
+        if (!Number.isInteger(length) || length < 1 || length > 1024) {
+          output.textContent = "Error: Length must be between 1 and 1024";
+          return;
+        }
+
+        const limit = Math.floor(0x100000000 / digits.length) * digits.length;
         let result = '';
-        for (let i = 0; i < inputLength.value; i++) {
-          result += digits[array[i] % digits.length];
+        for (let i = 0; i < length;) {
+          const batch = new Uint32Array(Math.max(64, length - i));
+          window.crypto.getRandomValues(batch);
+          for (const value of batch) {
+            if (value < limit) {
+              result += digits[value % digits.length];
+              i++;
+              if (i >= length) break;
+            }
+          }
         }
         output.textContent = result;
       }

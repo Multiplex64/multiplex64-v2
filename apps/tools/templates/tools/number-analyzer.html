@@ -6,7 +6,7 @@
   <br><br>
   Input
   <br>
-  <input type="number" id="input-main" value="60">
+  <input type="number" id="input-main" value="60" min="1" max="1000000">
   <br><br>
   <button id="button-action">Go!</button>
   <label><input type="checkbox" id="check-auto" checked>Auto</label>
@@ -22,17 +22,18 @@
   (function () {
     function divisibleBy(n) {
       if (Number.isInteger(n)) {
-        if (n <= Number.MAX_SAFE_INTEGER) {
+        if (n > 0 && n <= 1000000) {
           const factors = [];
-          for (let i = 1; i < n; i++) {
+          for (let i = 1; i * i <= n; i++) {
             if (n % i == 0) {
               factors.push(i);
+              if (i * i !== n) factors.push(n / i);
             }
           }
-          factors.push(n);
+          factors.sort((a, b) => a - b);
           return factors.join(", ");
         } else {
-          return "Error: Number too large"
+          return "Error: Enter an integer from 1 to 1,000,000"
         }
       } else {
         return "Error: Not an integer"
@@ -40,18 +41,19 @@
     }
     function primeFactors(n) {
       if (Number.isInteger(n)) {
-        if (n <= Number.MAX_SAFE_INTEGER) {
+        if (n > 0 && n <= 1000000) {
           const factors = [];
           let divisor = 2;
 
-          while (n >= 2) {
+          while (n >= divisor * divisor) {
             if (n % divisor == 0) {
               factors.push(divisor);
               n = n / divisor;
             } else {
-              divisor++;
+              divisor += divisor === 2 ? 1 : 2;
             }
           }
+          if (n > 1) factors.push(n);
           return factors.join(", ");
         } else {
           return "Error: Number too large"

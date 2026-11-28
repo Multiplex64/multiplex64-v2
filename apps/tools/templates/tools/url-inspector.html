@@ -34,26 +34,47 @@
     const buttonAction = document.getElementById('button-action')
     const output = document.getElementById("output")
     function encasePre(value) {
-      return "<pre style='display:inline;margin: 0;'>" + value + "</pre>"
+      const pre = document.createElement("pre")
+      pre.style.display = "inline"
+      pre.style.margin = "0"
+      pre.textContent = value
+      return pre
     }
     function analyzeURL(manual) {
       try {
-        url = new URL(inputMain.value)
-        output.innerHTML = (
-          `Full URL: ` + encasePre(url.href)
-          + `<br>Protocol: ` + encasePre(url.protocol)
-          + `<br>Origin: ` + encasePre(url.origin)
-          + `<br>Host: ` + encasePre(url.host)
-          + `<br>Hostname: ` + encasePre(url.hostname)
-          + `<br>Port: ` + encasePre(url.port)
-          + `<br>Pathname: ` + encasePre(url.pathname)
-          + `<br>Search: ` + encasePre(url.search)
-          + `<br>Hash: ` + encasePre(url.hash)
-          + `<br><br><a href='` + url.href + `'>Open in This Tab</a>`
-          + `<br><a href='` + url.href + `' target='_blank'>Open in New Tab</a>`
-        )
+        const url = new URL(inputMain.value)
+        output.replaceChildren()
+
+        const fields = [
+          ["Full URL", url.href],
+          ["Protocol", url.protocol],
+          ["Origin", url.origin],
+          ["Host", url.host],
+          ["Hostname", url.hostname],
+          ["Port", url.port],
+          ["Pathname", url.pathname],
+          ["Search", url.search],
+          ["Hash", url.hash],
+        ]
+        fields.forEach(([label, value], index) => {
+          if (index > 0) output.append(document.createElement("br"))
+          output.append(document.createTextNode(`${label}: `), encasePre(value))
+        })
+
+        if (url.protocol === "http:" || url.protocol === "https:") {
+          output.append(document.createElement("br"), document.createElement("br"))
+          const sameTab = document.createElement("a")
+          sameTab.href = url.href
+          sameTab.textContent = "Open in This Tab"
+          const newTab = document.createElement("a")
+          newTab.href = url.href
+          newTab.target = "_blank"
+          newTab.rel = "noopener noreferrer"
+          newTab.textContent = "Open in New Tab"
+          output.append(sameTab, document.createElement("br"), newTab)
+        }
       } catch (e) {
-        output.innerHTML = (`URL could not be processed. Make sure it has a protocol at the start, like 'https://example.com' instead of 'example.com'.`)
+        output.textContent = "URL could not be processed. Make sure it has a protocol at the start, like 'https://example.com' instead of 'example.com'."
       }
     }
     analyzeURL()
