@@ -24,7 +24,7 @@
       if (Number.isInteger(n)) {
         if (n <= Number.MAX_SAFE_INTEGER) {
           const factors = [];
-          for (i = 1; i < n; i++) {
+          for (let i = 1; i < n; i++) {
             if (n % i == 0) {
               factors.push(i);
             }
