@@ -57,6 +57,7 @@ urlpatterns = [
     # General Directories
     path("", include("apps.home.urls")),
     path("tools/", include("apps.tools.urls")),
+    path("services/", include("apps.services.urls")),
     path("feedback/", include("apps.feedback.urls")),
     path("pricing/", include("apps.pricing.urls")),
     # Sitemaps

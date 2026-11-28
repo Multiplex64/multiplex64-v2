@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.sitemaps",
     "apps.home",
     "apps.tools",
+    "apps.services",
     "apps.feedback",
     "apps.pricing",
     "apps.updater",
