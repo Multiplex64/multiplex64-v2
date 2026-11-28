@@ -60,9 +60,6 @@ class RequestLoggingMiddleware:
         # Pass request down to the view and capture the response
         response = self.get_response(request)
 
-        # Calculate total processing duration in milliseconds
-        duration_ms = (time.monotonic() - start_time) * 1000
-
         # Identify authenticated user if available
         user = (
             request.user.username
@@ -76,6 +73,9 @@ class RequestLoggingMiddleware:
         else:
             response_size = len(response.content)
 
+        # Calculate total processing duration in milliseconds
+        duration_us = (time.monotonic() - start_time) * 1000000
+
         # Log the details
         plaintext_logger.info(
             f"{client_ip.ljust(15)} "
@@ -83,7 +83,7 @@ class RequestLoggingMiddleware:
             f"{request.method[:3]} "
             f"{request.get_full_path()} - "
             f"{user} "
-            f"{duration_ms:.0f}ms"
+            f"{duration_us:.0f}us"
         )
 
         json_logger.info(
@@ -92,6 +92,8 @@ class RequestLoggingMiddleware:
                     "time": utc_time,
                     "trace_id": request.id,
                     "view": getattr(request.resolver_match, "view_name", None),
+                    # "level": "info", # Not used, all logs in this file are info level
+                    # "env": "prod", # Not used, each env already has separate logs
                     "request": {
                         "method": request.method,
                         # "host": request.get_host(), # Not used, serves one domain
@@ -101,16 +103,14 @@ class RequestLoggingMiddleware:
                         "user_id": (
                             request.user.id if request.user.is_authenticated else None
                         ),
-                        "session_id": (
-                            request.session.session_key
-                        ),
+                        "session_id": (request.session.session_key),
                         "referer": request.headers.get("Referer"),
                         "user_agent": request.headers.get("User-Agent"),
                     },
                     "response": {
                         "code": response.status_code,
                         "size": response_size,
-                        "duration_ms": round(duration_ms, 2),
+                        "duration_us": round(duration_us),
                     },
                 }
             )
