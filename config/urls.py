@@ -15,19 +15,19 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-import os
 from pathlib import Path
-import config.settings
-from django.http import Http404
+
 from django.contrib import admin
-from django.urls import include, path, re_path
-from django.views.static import serve
-from django.views.generic.base import RedirectView
 from django.contrib.sitemaps.views import sitemap
+from django.urls import include, path, re_path
+from django.views.generic.base import RedirectView
+from django.views.static import serve
+
+import config.settings
+from apps.feedback.sitemaps import FeedbackIndexSitemap
 from apps.home.sitemaps import HomeIndexSitemap, HomePagesSitemap
 from apps.pricing.sitemaps import PricingIndexSitemap
 from apps.tools.sitemaps import ToolsIndexSitemap, ToolsPagesSitemap
-from apps.feedback.sitemaps import FeedbackIndexSitemap
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

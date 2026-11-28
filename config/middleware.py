@@ -1,11 +1,8 @@
+import datetime
+import json
 import logging
 import time
-import json
 import uuid
-import datetime
-import ipaddress
-
-from django.conf import settings
 
 plaintext_logger = logging.getLogger("plaintext_request_logger")
 json_logger = logging.getLogger("json_request_logger")
